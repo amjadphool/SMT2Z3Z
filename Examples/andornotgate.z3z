@@ -1,0 +1,18 @@
+
+declare( VL_RESET,  VL_TICK,  a,  clk, states_1, states_2, states_3);
+
+events: [ VL_RESET,  VL_TICK,  a,  clk];
+
+states: [states_1, states_2, states_3];
+
+initializations: [states_1 = -1, states_2 = 1, states_3 = -1];
+
+evolutions: [not (states_1) * (when  clk) + (1 - (when  clk)) * states_1,
+ (states_2 or  a) * (when  clk) + (1 - (when  clk)) * states_2,
+ (states_3 and  a) * (when  clk) + (1 - (when  clk)) * states_3];
+
+constraints: [ ];
+
+controllables: [ ];
+
+free_cond: [ ];

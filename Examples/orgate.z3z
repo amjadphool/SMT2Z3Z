@@ -1,0 +1,16 @@
+
+declare( VL_TICK,  a,  clk, states_1);
+
+events: [ VL_TICK,  a,  clk];
+
+states: [states_1];
+
+initializations: [states_1 = -1];
+
+evolutions: [(states_1 or  a) * (when  clk) + (1 - (when  clk)) * states_1];
+
+constraints: [ ];
+
+controllables: [ ];
+
+free_cond: [ ];
