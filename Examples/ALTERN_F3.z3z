@@ -1,0 +1,46 @@
+
+declare(
+        a,
+        states_1);
+
+
+
+CLK_15 : a ^2;
+
+CLK_17 : when a;
+
+zx : states_1 * CLK_17;
+
+x : not zx;
+
+
+
+
+events: [
+        a];
+
+
+states: [
+        states_1];
+
+
+initialisations: [
+        states_1 = - 1];
+
+
+evolutions: [
+        x * CLK_17 + (1 - CLK_17) * states_1];
+
+
+constraints: [
+        ];
+
+
+controllables: [
+        ];
+
+
+free_cond: [
+        ];
+
+
