@@ -5,11 +5,11 @@ events: [ VL_TICK,  a,  clk];
 
 states: [states_1];
 
-initializations: [states_1 = -1];
+initialisations: [states_1 = -1];
 
 evolutions: [(states_1 or  a) * (when  clk) + (1 - (when  clk)) * states_1];
 
-constraints: [ ];
+constraints: [ a ^2 = when clk];
 
 controllables: [ ];
 

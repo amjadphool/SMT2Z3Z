@@ -5,7 +5,7 @@ events: [ VL_RESET,  VL_TICK,  a];
 
 states: [states_1];
 
-initializations: [states_1 = -1];
+initialisations: [states_1 = -1];
 
 evolutions: [not (states_1) * (when  a) + (1 - (when  a)) * states_1];
 
