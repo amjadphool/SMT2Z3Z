@@ -14,7 +14,8 @@ import java.util.Map;
 
 /**
  *
- * @author Noor Khan
+ * @author Noor Khan (noorkhan_92@buaa.edu.cn)
+ * @author Amjad (amjadphool@buaa.edu.cn)
  */
 public class ModelGenerator {
 
@@ -27,19 +28,19 @@ public class ModelGenerator {
     List<String> listOutput;
     Map<Integer, String> inputVar = new HashMap<>();    //stores all input variable names
     Map<Integer, String> outputVar = new HashMap<>();    //stores all output variable names
-    Map<Integer, String> initializationVar = new HashMap<>();    //stores all initialized values of states variable names
+    Map<Integer, String> initialisationVar = new HashMap<>();    //stores all initialized values of states variable names
     Map<Integer, String> statesVar = new HashMap<>();
     Map<Integer, String> evolutions = new HashMap<>();
     String nextStatement = "";
     String str;
     int altern = 0;
-    int alternInitialization = 0;
+    int alterninitialisation = 0;
     int state = 1;
     int n = 0;
 
     public ModelGenerator() {
         try {
-            inputFile = new File("ALTERN.smt2");
+            inputFile = new File("andornotgate.smt2");
             buffer = new BufferedReader(new FileReader(inputFile));
             listInput = new ArrayList<>();
             listOutput = new ArrayList<>();
@@ -93,9 +94,9 @@ public class ModelGenerator {
                         s = listInput.get(listInput.indexOf(s) + 1);
                         if (s.contains(Integer.toString(k))) {
                             if (s.contains("true")) {
-                                initializationVar.put(k, statesVar.get(k) + " = 1");
+                                initialisationVar.put(k, statesVar.get(k) + " = 1");
                             } else {
-                                initializationVar.put(k, statesVar.get(k) + " = -1");
+                                initialisationVar.put(k, statesVar.get(k) + " = -1");
                             }
                         }
                     }
@@ -242,18 +243,18 @@ public class ModelGenerator {
         int indexOfDeclare;
         int indexOfEvents;
         int indexOfStates;
-        int indexOfInitializations;
+        int indexOfinitialisations;
         int indexOfEvolutions;
 
         listOutput.add("declare(");
         listOutput.add("events: [");
         listOutput.add("states: [");
-        listOutput.add("initializations: [");
+        listOutput.add("initialisations: [");
         listOutput.add("evolutions: [");
         indexOfDeclare = listOutput.indexOf("declare(");
         indexOfEvents = listOutput.indexOf("events: [");
         indexOfStates = listOutput.indexOf("states: [");
-        indexOfInitializations = listOutput.indexOf("initializations: [");
+        indexOfinitialisations = listOutput.indexOf("initialisations: [");
         indexOfEvolutions = listOutput.indexOf("evolutions: [");
         inputVar.values().forEach((s) -> {
             listOutput.set(indexOfDeclare, listOutput.get(indexOfDeclare) + s + ", ");
@@ -266,9 +267,9 @@ public class ModelGenerator {
             listOutput.set(indexOfDeclare, listOutput.get(indexOfDeclare) + s + ", ");
         }
 
-        //adding initialization values to states...
-        for (String s : initializationVar.values()) {
-            listOutput.set(indexOfInitializations, listOutput.get(indexOfInitializations) + s + ", ");
+        //adding initialisation values to states...
+        for (String s : initialisationVar.values()) {
+            listOutput.set(indexOfinitialisations, listOutput.get(indexOfinitialisations) + s + ", ");
         }
 
         for (String s : evolutions.values()) {
@@ -281,8 +282,8 @@ public class ModelGenerator {
         listOutput.set(indexOfEvents, events.substring(0, events.lastIndexOf(",")) + "];");
         String states = listOutput.get(indexOfStates);
         listOutput.set(indexOfStates, states.substring(0, states.lastIndexOf(",")) + "];");
-        String initializations = listOutput.get(indexOfInitializations);
-        listOutput.set(indexOfInitializations, initializations.substring(0, initializations.lastIndexOf(",")) + "];");
+        String initialisations = listOutput.get(indexOfinitialisations);
+        listOutput.set(indexOfinitialisations, initialisations.substring(0, initialisations.lastIndexOf(",")) + "];");
 
         //finalizing evolotions statement and adding to the output list...
         String evolution = listOutput.get(indexOfEvolutions);
