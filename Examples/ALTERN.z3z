@@ -1,13 +1,23 @@
 
-declare( VL_RESET,  VL_TICK,  a, states_1);
+declare(
+	 VL_RESET, 
+	 VL_TICK, 
+	 a, 
+	states_1);
 
-events: [ VL_RESET,  VL_TICK,  a];
+events: [
+	 VL_RESET, 
+	 VL_TICK, 
+	 a];
 
-states: [states_1];
+states: [
+	states_1];
 
-initialisations: [states_1 = -1];
+initialisations: [
+	states_1 = -1];
 
-evolutions: [not (states_1) * (when  a) + (1 - (when  a)) * states_1];
+evolutions: [
+	not (states_1) * (when  a) + (1 - (when  a)) * states_1];
 
 constraints: [ ];
 

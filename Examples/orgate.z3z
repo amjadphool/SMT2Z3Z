@@ -1,15 +1,26 @@
 
-declare( VL_TICK,  a,  clk, states_1);
+declare(
+	 VL_TICK, 
+	 a, 
+	 clk, 
+	states_1);
 
-events: [ VL_TICK,  a,  clk];
+events: [
+	 VL_TICK, 
+	 a, 
+	 clk];
 
-states: [states_1];
+states: [
+	states_1];
 
-initialisations: [states_1 = -1];
+initialisations: [
+	states_1 = -1];
 
-evolutions: [(states_1 or  a) * (when  clk) + (1 - (when  clk)) * states_1];
+evolutions: [
+	(states_1 or  a) * (when  clk) + (1 - (when  clk)) * states_1];
 
-constraints: [ a ^2 = when clk];
+constraints: [
+	 a^2 = when  clk];
 
 controllables: [ ];
 
