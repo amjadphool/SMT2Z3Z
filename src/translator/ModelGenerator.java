@@ -7,7 +7,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,19 +27,22 @@ public class ModelGenerator {
     List<String> listOutput;
     Map<Integer, String> inputVar = new HashMap<>();    //stores all input variable names
     Map<Integer, String> outputVar = new HashMap<>();    //stores all output variable names
-    Map<Integer, String> initialisationVar = new HashMap<>();    //stores all initialized values of states variable names
+    Map<Integer, String> initialisationVar = new HashMap<>();    //stores all initialised values of states variable names
     Map<Integer, String> statesVar = new HashMap<>();
     Map<Integer, String> evolutions = new HashMap<>();
+    Map<Integer, String> constraints = new HashMap<>(); // stores constraints in a list form
+
     String nextStatement = "";
+    String whenClk;
     String str;
     int altern = 0;
-    int alterninitialisation = 0;
+    int alternInitialisation = 0;
     int state = 1;
     int n = 0;
 
     public ModelGenerator() {
         try {
-            inputFile = new File("andornotgate.smt2");
+            inputFile = new File("andornotgate1.smt2");
             buffer = new BufferedReader(new FileReader(inputFile));
             listInput = new ArrayList<>();
             listOutput = new ArrayList<>();
@@ -121,12 +123,14 @@ public class ModelGenerator {
                         String statement = nextStatement.substring(nextStatement.indexOf("ite"));
                         for (int input : inputVar.keySet()) {
                             int inputIndex = statement.indexOf("#" + input);
-                            if(inputIndex>-1)
-                            if (statement.substring(inputIndex, statement.substring(inputIndex).indexOf("| state") + inputIndex).equals("#" + input)) {
-                                evoInput = input;
-                                evolutions.put(evoKey, evolutions.get(evoKey) + "(when " + inputVar.get(input) + ") "
-                                        + "+ (1 - (when " + inputVar.get(input) + ")) * " + statesVar.get(evoKey));
-                                statement = statement.substring(statement.indexOf("ite"));
+                            if (inputIndex > -1) {
+                                if (statement.substring(inputIndex, statement.substring(inputIndex).indexOf("| state") + inputIndex).equals("#" + input)) {
+                                    evoInput = input;
+                                    evolutions.put(evoKey, evolutions.get(evoKey) + "(when " + inputVar.get(input) + ") "
+                                            + "+ (1 - (when " + inputVar.get(input) + ")) * " + statesVar.get(evoKey));
+                                    whenClk = "when " + inputVar.get(input);
+                                    statement = statement.substring(statement.indexOf("ite"));
+                                }
                             }
                         }
 
@@ -144,7 +148,6 @@ public class ModelGenerator {
 
         printToOutputList();
 
-        listOutput.add("constraints: [ ];");
         listOutput.add("controllables: [ ];");
         listOutput.add("free_cond: [ ];");
 
@@ -172,11 +175,12 @@ public class ModelGenerator {
         }
         //finding the list of input variable given for the condition in and, or...
         for (int k : inputVar.keySet()) {
-            if (nextStatement.contains("#" + Integer.toString(k))) {
+            if (nextStatement.contains("#" + Integer.toString(k) + "|")) {
                 requireState.add(inputVar.get(k));
+                constraints.put(k, inputVar.get(k) + "^2 = " + whenClk);
             }
         }
-        
+
         switch (condition.toUpperCase()) {
             case "NOT": {
                 evolutions.put(evoKey, "not " + "(" + requireState.get(0) + ")" + evolutions.get(evoKey).substring(8));
@@ -217,18 +221,7 @@ public class ModelGenerator {
         }
         listOutput.forEach((s) -> {
             writer.println();
-            if (s.contains(",") && s.contains("evolutions")) {
-                List<String> lineList = Arrays.asList(s.split(","));
-                lineList.forEach((String line) -> {
-                    if (line.equals(lineList.get(lineList.size() - 1))) {
-                        writer.println(line);
-                    } else {
-                        writer.println(line + ",");
-                    }
-                });
-            } else {
                 writer.println(s);
-            }
         });
         writer.close();
         System.out.println("The program run succesfully and the output file with extension z3z generated...");
@@ -243,37 +236,46 @@ public class ModelGenerator {
         int indexOfDeclare;
         int indexOfEvents;
         int indexOfStates;
-        int indexOfinitialisations;
+        int indexOfInitialisations;
         int indexOfEvolutions;
+        int indexOfConstraints;
 
         listOutput.add("declare(");
         listOutput.add("events: [");
         listOutput.add("states: [");
         listOutput.add("initialisations: [");
         listOutput.add("evolutions: [");
+        listOutput.add("constraints: [");
+
         indexOfDeclare = listOutput.indexOf("declare(");
         indexOfEvents = listOutput.indexOf("events: [");
         indexOfStates = listOutput.indexOf("states: [");
-        indexOfinitialisations = listOutput.indexOf("initialisations: [");
+        indexOfInitialisations = listOutput.indexOf("initialisations: [");
         indexOfEvolutions = listOutput.indexOf("evolutions: [");
+        indexOfConstraints = listOutput.indexOf("constraints: [");
+
         inputVar.values().forEach((s) -> {
-            listOutput.set(indexOfDeclare, listOutput.get(indexOfDeclare) + s + ", ");
-            listOutput.set(indexOfEvents, listOutput.get(indexOfEvents) + s + ", ");
+            listOutput.set(indexOfDeclare, listOutput.get(indexOfDeclare) + "\n\t" + s + ", ");
+            listOutput.set(indexOfEvents, listOutput.get(indexOfEvents) + "\n\t" + s + ", ");
         });
 
         //adding states or memory location for output variables...
         for (String s : statesVar.values()) {
-            listOutput.set(indexOfStates, listOutput.get(indexOfStates) + s + ", ");
-            listOutput.set(indexOfDeclare, listOutput.get(indexOfDeclare) + s + ", ");
+            listOutput.set(indexOfStates, listOutput.get(indexOfStates) + "\n\t" + s + ", ");
+            listOutput.set(indexOfDeclare, listOutput.get(indexOfDeclare) + "\n\t" + s + ", ");
         }
 
         //adding initialisation values to states...
         for (String s : initialisationVar.values()) {
-            listOutput.set(indexOfinitialisations, listOutput.get(indexOfinitialisations) + s + ", ");
+            listOutput.set(indexOfInitialisations, listOutput.get(indexOfInitialisations) + "\n\t" + s + ", ");
         }
 
         for (String s : evolutions.values()) {
-            listOutput.set(indexOfEvolutions, listOutput.get(indexOfEvolutions) + s + ", ");
+            listOutput.set(indexOfEvolutions, listOutput.get(indexOfEvolutions) + "\n\t" + s + ", ");
+        }
+
+        for (String s : constraints.values()) {
+            listOutput.set(indexOfConstraints, listOutput.get(indexOfConstraints) + "\n\t" + s + ", ");
         }
 
         String declare = listOutput.get(indexOfDeclare);
@@ -282,13 +284,18 @@ public class ModelGenerator {
         listOutput.set(indexOfEvents, events.substring(0, events.lastIndexOf(",")) + "];");
         String states = listOutput.get(indexOfStates);
         listOutput.set(indexOfStates, states.substring(0, states.lastIndexOf(",")) + "];");
-        String initialisations = listOutput.get(indexOfinitialisations);
-        listOutput.set(indexOfinitialisations, initialisations.substring(0, initialisations.lastIndexOf(",")) + "];");
+        String initialisations = listOutput.get(indexOfInitialisations);
+        listOutput.set(indexOfInitialisations, initialisations.substring(0, initialisations.lastIndexOf(",")) + "];");
 
         //finalizing evolotions statement and adding to the output list...
         String evolution = listOutput.get(indexOfEvolutions);
         listOutput.set(indexOfEvolutions, evolution.substring(0, evolution.lastIndexOf(", ")) + "];");
-        //printSomething(indexOfEvents, null);
+        //adding the last constraints to the output list...
+        String constraint = listOutput.get(indexOfConstraints);
+        if(constraint.contains(", "))
+        listOutput.set(indexOfConstraints, constraint.substring(0, constraint.lastIndexOf(", ")) + "];");
+        else
+        	listOutput.set(indexOfConstraints, constraint + " ];");
     }
 
     //Testing method....
